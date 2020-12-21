@@ -1,12 +1,10 @@
-FROM golang:alpine AS builder
-RUN apk --no-cache upgrade
-RUN apk --no-cache add alpine-sdk
-COPY ./ /go/src/github.com/brandond/syslog_ng_exporter/
-WORKDIR /go/src/github.com/brandond/syslog_ng_exporter/
+FROM golang:alpine
+RUN apk add make
+COPY ./ /src/
+WORKDIR /src/
 RUN make
-
-FROM quay.io/prometheus/busybox:latest
-LABEL maintainer="Brad Davidson <brad@oatmail.org>"
-COPY --from=builder /go/src/github.com/brandond/syslog_ng_exporter/syslog_ng_exporter /bin/syslog_ng_exporter
+# TODO: split this dockerfile here
+# to prevent unneccessary layers in the final image
+RUN install syslog_ng_exporter -t /bin
 ENTRYPOINT ["/bin/syslog_ng_exporter"]
 EXPOSE     9577
